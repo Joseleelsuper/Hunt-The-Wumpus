@@ -1,5 +1,6 @@
 /.venv
 /.vscode
 /tests
-/src/ui/__pycache__
-/src/game/__pycache__
+/src/ui/__pycache__/
+/src/game/__pycache__/
+/src/game/ai/__pycache__/
