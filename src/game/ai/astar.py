@@ -20,7 +20,7 @@ class AStarPlayer:
         
         if self.path and len(self.path) > 1:
             next_pos = self.path[1]
-            self.path = self.path[1:]  # Remove the current position
+            self.path = self.path[1:]
             return self.get_move_direction(self.board.agent_pos, next_pos)
         return None
 

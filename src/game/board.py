@@ -22,11 +22,8 @@ class Board:
         for i in range(self.size):
             for j in range(self.size):
                 cell_content = custom_board[i][j]
-                if cell_content == '[':
-                    # Buscar el corchete de cierre
-                    end_bracket = custom_board[i].index(']', j)
-                    cell_content = custom_board[i][j+1:end_bracket]
-                    j = end_bracket  # Actualizar j para saltar el contenido del corchete
+                if isinstance(cell_content, str) and cell_content.startswith('[') and cell_content.endswith(']'):
+                    cell_content = cell_content[1:-1]
                 
                 for char in cell_content:
                     if char == 'A':
@@ -73,7 +70,7 @@ class Board:
     def place_gold(self):
         while True:
             x, y = random.randint(0, self.size-1), random.randint(0, self.size-1)
-            if (x, y) != self.agent_pos and (x, y) != self.wumpus_pos and len(self.board[x][y]) < 3 and not self.is_adjacent(x, y, [self.agent_pos]):
+            if (x, y) != self.agent_pos and (x, y) != self.wumpus_pos and len(self.board[x][y]) < 3:
                 self.gold_pos = (x, y)
                 self.board[x][y].append('G')
                 break
@@ -105,14 +102,6 @@ class Board:
                 elif 'W' in self.board[x][y]:
                     self.place_perception(x, y, 's')
 
-        # Ensure no overlapping perceptions on Wumpus or pits
-        for x in range(self.size):
-            for y in range(self.size):
-                if 'W' in self.board[x][y] and 's' in self.board[x][y]:
-                    self.board[x][y].remove('s')
-                if 'P' in self.board[x][y] and 'b' in self.board[x][y]:
-                    self.board[x][y].remove('b')
-
     def place_perception(self, x, y, perception):
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx, ny = x + dx, y + dy
@@ -134,9 +123,10 @@ class Board:
         new_x, new_y = self.agent_pos[0] + dx, self.agent_pos[1] + dy
 
         if 0 <= new_x < self.size and 0 <= new_y < self.size:
-            self.board[self.agent_pos[0]][self.agent_pos[1]].remove('A')
+            if 'A' in self.board[self.agent_pos[0]][self.agent_pos[1]]:
+                self.board[self.agent_pos[0]][self.agent_pos[1]].remove('A')
             self.agent_pos = (new_x, new_y)
-            if len(self.board[new_x][new_y]) < 3:
+            if 'A' not in self.board[new_x][new_y]:
                 self.board[new_x][new_y].append('A')
             self.check_perceptions()
             return True
@@ -192,3 +182,58 @@ class Board:
 
     def heuristic(self, a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    def move_dangerous_object(self):
+        objects = [('W', self.wumpus_pos)] + [('P', pit) for pit in self.pits]
+        obj_type, obj_pos = random.choice(objects)
+
+        possible_moves = self.get_possible_moves(obj_pos)
+        if not possible_moves:
+            return False
+
+        new_pos = random.choice(possible_moves)
+        self.move_object(obj_type, obj_pos, new_pos)
+        return True
+
+    def move_object(self, obj_type, old_pos, new_pos):
+        x, y = old_pos
+        new_x, new_y = new_pos
+
+        if obj_type in self.board[x][y]:
+            self.board[x][y].remove(obj_type)
+        self.remove_perceptions(x, y, obj_type)
+
+        self.board[new_x][new_y].append(obj_type)
+
+        if obj_type == 'W':
+            self.wumpus_pos = new_pos
+        elif obj_type == 'P':
+            self.pits.remove(old_pos)
+            self.pits.append(new_pos)
+
+        self.add_perceptions(new_x, new_y, obj_type)
+
+    def remove_perceptions(self, x, y, obj_type):
+        perception = 's' if obj_type == 'W' else 'b'
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.size and 0 <= ny < self.size:
+                if perception in self.board[nx][ny]:
+                    self.board[nx][ny].remove(perception)
+
+    def add_perceptions(self, x, y, obj_type):
+        perception = 's' if obj_type == 'W' else 'b'
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.size and 0 <= ny < self.size:
+                if perception not in self.board[nx][ny]:
+                    self.board[nx][ny].append(perception)
+
+    def get_possible_moves(self, pos):
+        x, y = pos
+        moves = []
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.size and 0 <= ny < self.size and 'A' not in self.board[nx][ny] and 'G' not in self.board[nx][ny]:
+                moves.append((nx, ny))
+        return moves

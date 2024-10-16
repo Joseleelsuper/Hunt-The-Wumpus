@@ -1,3 +1,6 @@
+from game.board import Board
+
+
 class TextMode:
     def __init__(self, board):
         self.board = board
@@ -47,7 +50,7 @@ class TextMode:
         for row in board:
             row_str = '|'
             for cell in row:
-                cell_content = ''.join(sorted(cell))[:3].ljust(3)  # Limita a 4 caracteres y rellena con espacios
+                cell_content = ''.join(sorted(cell))[:3].ljust(3)  # Limita a 3 caracteres y rellena con espacios
                 row_str += f'{cell_content}|'
             print(row_str)
             print(horizontal_line)

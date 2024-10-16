@@ -1,4 +1,3 @@
-import sys
 import os
 from game.board import Board
 from ui.text_mode import TextMode
