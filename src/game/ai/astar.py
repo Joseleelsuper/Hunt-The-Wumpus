@@ -1,30 +1,61 @@
 import heapq
 import pygame
 import time
+from game.board import Board
+from game.utils import get_move_direction
 from ui.pygame_mode import PygameMode
 
 class AStarPlayer:
-    def __init__(self, board):
+    """
+    Clase que representa un jugador que utiliza el algoritmo A* para encontrar
+    la mejor ruta hacia el oro.
+    """
+    def __init__(self, board: Board):
+        """
+        Inicializa el jugador con el tablero en el que se encuentra.
+        
+        Args:
+            board (Board): Tablero en el que se encuentra el jugador.
+        """
         self.board = board
         self.path = None
         self.game = PygameMode(board)
 
     def calculate_path(self):
+        """
+        Calcula la ruta óptima hacia el oro utilizando el algoritmo A*.
+        """
         start = self.board.agent_pos
         goal = self.board.gold_pos
         self.path = self.a_star_search(start, goal)
 
     def get_best_move(self):
+        """
+        Devuelve el siguiente movimiento a realizar en la ruta hacia el oro.
+
+        Returns:
+            str: Dirección del movimiento a realizar.
+        """
         if self.path is None:
             self.calculate_path()
         
         if self.path and len(self.path) > 1:
             next_pos = self.path[1]
             self.path = self.path[1:]
-            return self.get_move_direction(self.board.agent_pos, next_pos)
+            return get_move_direction(self.board.agent_pos, next_pos)
         return None
 
-    def a_star_search(self, start, goal):
+    def a_star_search(self, start: tuple, goal: tuple):
+        """
+        Implementación del algoritmo A* para encontrar la ruta óptima entre dos puntos.
+        
+        Args:
+            start (tuple): Posición de inicio (x, y).
+            goal (tuple): Posición de destino (x, y).
+
+        Returns:
+            list: Lista de posiciones que forman la ruta óptima.
+        """
         open_list = []
         closed_set = set()
         came_from = {}
@@ -62,7 +93,16 @@ class AStarPlayer:
 
         return None
 
-    def get_neighbors(self, pos):
+    def get_neighbors(self, pos: tuple):
+        """
+        Devuelve las posiciones vecinas a una posición dada.
+        
+        Args:
+            pos (tuple): Posición actual (x, y).
+            
+        Returns:
+            list: Lista de posiciones vecinas.
+        """
         neighbors = []
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             new_pos = (pos[0] + dx, pos[1] + dy)
@@ -70,17 +110,28 @@ class AStarPlayer:
                 neighbors.append(new_pos)
         return neighbors
 
-    def get_cost(self, pos):
+    def get_cost(self, pos: tuple):
+        """
+        Calcula el coste de moverse a una posición dada.
+        
+        Args:
+            pos (tuple): Posición a la que se quiere mover (x, y).
+            
+        Returns:
+            float: Coste de moverse a la posición dada.
+        """
         cell = self.board.board[pos[0]][pos[1]]
         base_cost = 1
 
         # Aumentar significativamente el coste para celdas peligrosas
         if 'W' in cell or 'P' in cell:
-            return float('inf')  # Coste infinito para Wumpus y pozos
+            return float('inf')
+        elif 'b' and 's' in cell:
+            base_cost *= 150
         elif 'b' in cell:
-            base_cost *= 50  # Coste muy alto para brisas
+            base_cost *= 50
         elif 's' in cell:
-            base_cost *= 100  # Coste extremadamente alto para hedor
+            base_cost *= 100
 
         # Reducir el coste para celdas más cercanas al oro
         distance_to_gold = self.board.heuristic(pos, self.board.gold_pos)
@@ -88,25 +139,26 @@ class AStarPlayer:
         
         return base_cost / gold_factor
 
-    def reconstruct_path(self, came_from, current):
+    def reconstruct_path(self, came_from: dict, current: tuple):
+        """
+        Reconstruye la ruta óptima a partir de los nodos visitados.
+        
+        Args:
+            came_from (dict): Diccionario con los nodos visitados.
+            current (tuple): Posición actual (x, y).
+        
+        Returns:
+            list: Lista de posiciones que forman la ruta óptima."""
         path = [current]
         while current in came_from:
             current = came_from[current]
             path.append(current)
         return path[::-1]
 
-    def get_move_direction(self, from_pos, to_pos):
-        dx, dy = to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]
-        if dx == -1:
-            return 'up'
-        elif dx == 1:
-            return 'down'
-        elif dy == -1:
-            return 'left'
-        elif dy == 1:
-            return 'right'
-
     def run(self):
+        """
+        Ejecuta el juego y el algoritmo A* para encontrar la ruta óptima hacia el oro.
+        """
         running = True
         while running:
             self.board.reset()

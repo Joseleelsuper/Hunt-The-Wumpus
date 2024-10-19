@@ -2,6 +2,7 @@ import pygame
 import time
 from ui.pygame_mode import PygameMode
 from copy import deepcopy
+from game.utils import manhattan_distance
 
 class MinMaxPlayer:
     def __init__(self, board, depth_limit=3):
@@ -47,7 +48,7 @@ class MinMaxPlayer:
     def evaluate(self, board):
         agent_pos = board.agent_pos
         gold_pos = board.gold_pos
-        distance_to_gold = board.heuristic(agent_pos, gold_pos)
+        distance_to_gold = manhattan_distance(agent_pos[0], agent_pos[1], gold_pos[0], gold_pos[1])
         
         danger_penalty = 0
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -107,6 +108,6 @@ class MinMaxPlayer:
             elif running:
                 print("Reiniciando el tablero personalizado...")
             
-            pygame.time.wait(1000)  # Esperar 1 segundo antes de reiniciar
+            pygame.time.wait(1000)
 
         self.game.quit()
