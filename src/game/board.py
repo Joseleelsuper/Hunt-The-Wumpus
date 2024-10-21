@@ -16,6 +16,7 @@ class Board:
         """
         self.size = size
         self.custom_board = custom_board
+        self.arrowAvailable = True
         self.reset()
 
     def reset(self):
@@ -27,6 +28,7 @@ class Board:
         self.wumpus_pos = None
         self.gold_pos = None
         self.pits = []
+        self.arrowAvailable = True
 
         if self.custom_board:
             self.load_custom_board(self.custom_board)
@@ -228,6 +230,10 @@ class Board:
         Returns:
             bool: True si se ha matado al Wumpus, False en caso contrario.
         """
+        if not self.arrowAvailable:
+            return False, "No tienes flechas disponibles."
+        
+        self.arrowAvailable = False
         dx, dy = {
             'up': (-1, 0),
             'down': (1, 0),
@@ -241,9 +247,16 @@ class Board:
                 self.board[x][y].remove('W')
                 self.board[x][y].append('X')  # X represents dead Wumpus
                 self.wumpus_pos = None
-                return True
+                self.remove_stench()
+                return True, "¡Has matado al Wumpus!"
             x, y = x + dx, y + dy
-        return False
+        return False, "Has fallado."
+
+    def remove_stench(self):
+        for x in range(self.size):
+            for y in range(self.size):
+                if 's' in self.board[x][y]:
+                    self.board[x][y].remove('s')
 
     def check_game_over(self):
         """

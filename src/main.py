@@ -70,7 +70,7 @@ Opciones:
   -newtablero <0/1>     0 para tablero aleatorio, 1 para tablero personalizado
   -board <size>         Tamaño del tablero (3-20) para tablero aleatorio
   -tablero <filename>   Nombre del archivo del tablero personalizado
-  -gamemode <mode>      Modo de juego (texto, pygame, astar, minmax)
+  -gamemode <mode>      Modo de juego (text, pygame, astar, minmax)
 
 Ejemplos:
   python main.py -newtablero 1 -tablero tablero_6x6.txt -gamemode astar
@@ -142,7 +142,7 @@ def main():
                 return
 
     game_modes = {
-        "texto": TextMode,
+        "text": TextMode,
         "pygame": PygameMode,
         "astar": AStarPlayer,
         "minmax": MinMaxPlayer
@@ -153,7 +153,7 @@ def main():
             game_mode = input(f"Elige el modo de juego ({', '.join(game_modes.keys())}): ").lower()
             if game_mode in game_modes:
                 break
-            print(f"Modo inválido. Por favor, elige texto, pygame, astar o minmax.")
+            print(f"Modo inválido. Por favor, elige text, pygame, astar o minmax.")
     else:
         game_mode = args.gamemode.lower()
         if game_mode not in game_modes:

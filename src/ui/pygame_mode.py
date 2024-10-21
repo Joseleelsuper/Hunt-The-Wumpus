@@ -68,13 +68,16 @@ class PygameMode:
                     elif event.key == pygame.K_d:
                         self.board.move_agent('right')
                     elif event.key == pygame.K_SPACE:
-                        direction = input("Ingresa una dirección para disparar (W/A/S/D): ").lower()
-                        direction_map = {'w': 'up', 'a': 'left', 's': 'down', 'd': 'right'}
-                        if direction in direction_map:
-                            if self.board.shoot_arrow(direction_map[direction]):
-                                print("¡Has matado al Wumpus!")
+                        if not self.board.arrowAvailable:
+                            print("No tienes flechas disponibles.")
+                        else:
+                            direction = input("Ingresa una dirección para disparar (W/A/S/D): ").lower()
+                            direction_map = {'w': 'up', 'a': 'left', 's': 'down', 'd': 'right'}
+                            if direction in direction_map:
+                                hit, message = self.board.shoot_arrow(direction_map[direction])
+                                print(message)
                             else:
-                                print("Has fallado.")
+                                print("Dirección inválida.")
 
             self.draw_board()
             pygame.display.flip()

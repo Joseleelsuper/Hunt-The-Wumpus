@@ -23,15 +23,16 @@ class TextMode:
                     print("Dirección inválida.")
             
             elif action in ['d', 'disparar']:
-                direction = input("Ingresa una dirección para disparar (W/A/S/D): ").lower()
-                direction_map = {'w': 'up', 'a': 'left', 's': 'down', 'd': 'right'}
-                if direction in direction_map:
-                    if self.board.shoot_arrow(direction_map[direction]):
-                        print("¡Has matado al Wumpus!")
-                    else:
-                        print("Has fallado.")
+                if not self.board.arrowAvailable:
+                    print("No tienes flechas disponibles.")
                 else:
-                    print("Dirección inválida.")
+                    direction = input("Ingresa una dirección para disparar (W/A/S/D): ").lower()
+                    direction_map = {'w': 'up', 'a': 'left', 's': 'down', 'd': 'right'}
+                    if direction in direction_map:
+                        hit, message = self.board.shoot_arrow(direction_map[direction])
+                        print(message)
+                    else:
+                        print("Dirección inválida.")
             
             else:
                 print("Acción inválida.")
@@ -41,7 +42,7 @@ class TextMode:
                 self.display_board()
                 print(message)
                 break
-
+    
     def display_board(self):
         board = self.board.get_board()
         horizontal_line = '+---' * self.board.size + '+'
