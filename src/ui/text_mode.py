@@ -1,6 +1,3 @@
-from game.board import Board
-
-
 class TextMode:
     def __init__(self, board):
         self.board = board

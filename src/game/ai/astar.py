@@ -1,8 +1,8 @@
 import heapq
 import pygame
 import time
-from game.board import Board
-from game.utils import get_move_direction
+from ..board import Board
+from ..utils import get_move_direction
 from ui.pygame_mode import PygameMode
 
 class AStarPlayer:

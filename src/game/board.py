@@ -1,12 +1,12 @@
 import random
 
-from game.utils import manhattan_distance
+from .utils import manhattan_distance
 
 class Board:
     """
     Clase que representa el tablero del juego.
     """
-    def __init__(self, size: int, custom_board: list = None):
+    def __init__(self, size: int = 6, custom_board: list = None):
         """
         Inicializa el tablero con un tamaño y un tablero personalizado opcional.
         
@@ -21,7 +21,7 @@ class Board:
 
     def reset(self):
         """
-        Reinicia el tabler una vez que se ha terminado una partida.
+        Reinicia el tablero una vez que se ha terminado una partida.
         """
         self.board = [[[] for _ in range(self.size)] for _ in range(self.size)]
         self.agent_pos = None
