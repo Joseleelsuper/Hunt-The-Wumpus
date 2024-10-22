@@ -1,4 +1,5 @@
-
+> [!NOTE]
+> Este README ha sido creado para mostrarse correctamente en github. Para la explicación del código paso a paso, abrir el README compatible con [Jupyter Notebook](/README.ipynb)
 
 # Hunt the Wumpus - Adaptación
 
