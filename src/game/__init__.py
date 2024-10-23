@@ -1,2 +1,2 @@
-from .board import *
+from .board import Board
 from .utils import *

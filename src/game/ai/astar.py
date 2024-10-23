@@ -1,20 +1,30 @@
 import heapq
+import sys
 import pygame
 import time
+import os
 
 from ..board import Board
 from ..utils import get_move_direction
-from ...ui.pygame_mode import PygameMode
+
+# Ajustar el sys.path para permitir imports relativos
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
+sys.path.append(project_root)
+
+from src.ui.pygame_mode import PygameMode
+
 
 class AStarPlayer:
     """
     Clase que representa un jugador que utiliza el algoritmo A* para encontrar
     la mejor ruta hacia el oro.
     """
+
     def __init__(self, board: Board):
         """
         Inicializa el jugador con el tablero en el que se encuentra.
-        
+
         Args:
             board (Board): Tablero en el que se encuentra el jugador.
         """
@@ -39,7 +49,7 @@ class AStarPlayer:
         """
         if self.path is None:
             self.calculate_path()
-        
+
         if self.path and len(self.path) > 1:
             next_pos = self.path[1]
             self.path = self.path[1:]
@@ -49,7 +59,7 @@ class AStarPlayer:
     def a_star_search(self, start: tuple, goal: tuple):
         """
         Implementación del algoritmo A* para encontrar la ruta óptima entre dos puntos.
-        
+
         Args:
             start (tuple): Posición de inicio (x, y).
             goal (tuple): Posición de destino (x, y).
@@ -82,12 +92,16 @@ class AStarPlayer:
                 if neighbor not in [i[1] for i in open_list]:
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative_g_score
-                    f_score[neighbor] = g_score[neighbor] + self.board.heuristic(neighbor, goal)
+                    f_score[neighbor] = g_score[neighbor] + self.board.heuristic(
+                        neighbor, goal
+                    )
                     heapq.heappush(open_list, (f_score[neighbor], neighbor))
-                elif tentative_g_score < g_score.get(neighbor, float('inf')):
+                elif tentative_g_score < g_score.get(neighbor, float("inf")):
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative_g_score
-                    f_score[neighbor] = g_score[neighbor] + self.board.heuristic(neighbor, goal)
+                    f_score[neighbor] = g_score[neighbor] + self.board.heuristic(
+                        neighbor, goal
+                    )
                     if neighbor in closed_set:
                         closed_set.remove(neighbor)
                         heapq.heappush(open_list, (f_score[neighbor], neighbor))
@@ -97,10 +111,10 @@ class AStarPlayer:
     def get_neighbors(self, pos: tuple):
         """
         Devuelve las posiciones vecinas a una posición dada.
-        
+
         Args:
             pos (tuple): Posición actual (x, y).
-            
+
         Returns:
             list: Lista de posiciones vecinas.
         """
@@ -114,10 +128,10 @@ class AStarPlayer:
     def get_cost(self, pos: tuple):
         """
         Calcula el coste de moverse a una posición dada.
-        
+
         Args:
             pos (tuple): Posición a la que se quiere mover (x, y).
-            
+
         Returns:
             float: Coste de moverse a la posición dada.
         """
@@ -125,29 +139,29 @@ class AStarPlayer:
         base_cost = 1
 
         # Aumentar significativamente el coste para celdas peligrosas
-        if 'W' in cell or 'P' in cell:
-            return float('inf')
-        elif 'b' and 's' in cell:
+        if "W" in cell or "P" in cell:
+            return float("inf")
+        elif "b" and "s" in cell:
             base_cost *= 150
-        elif 'b' in cell:
+        elif "b" in cell:
             base_cost *= 50
-        elif 's' in cell:
+        elif "s" in cell:
             base_cost *= 100
 
         # Reducir el coste para celdas más cercanas al oro
         distance_to_gold = self.board.heuristic(pos, self.board.gold_pos)
         gold_factor = max(1, self.board.size - distance_to_gold)
-        
+
         return base_cost / gold_factor
 
     def reconstruct_path(self, came_from: dict, current: tuple):
         """
         Reconstruye la ruta óptima a partir de los nodos visitados.
-        
+
         Args:
             came_from (dict): Diccionario con los nodos visitados.
             current (tuple): Posición actual (x, y).
-        
+
         Returns:
             list: Lista de posiciones que forman la ruta óptima."""
         path = [current]
@@ -181,20 +195,20 @@ class AStarPlayer:
                 if move:
                     self.board.move_agent(move)
                 self.game.draw_board()
-                
+
                 game_over, message = self.board.check_game_over()
                 if game_over:
                     print(message)
                     self.game.draw_board()
                     game_running = False
-                
+
                 time.sleep(0.7)
 
             if running and not self.board.custom_board:
                 print("Generando un nuevo tablero aleatorio...")
             elif running:
                 print("Reiniciando el tablero personalizado...")
-            
+
             pygame.time.wait(1000)  # Esperar 1 segundo antes de reiniciar
 
         self.game.quit()
