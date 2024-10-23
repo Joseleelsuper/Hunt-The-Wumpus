@@ -1,8 +1,9 @@
 import pygame
 import time
-from ui.pygame_mode import PygameMode
 from copy import deepcopy
-from game.utils import manhattan_distance
+
+from ...ui.pygame_mode import PygameMode
+from ..utils import manhattan_distance
 
 class MinMaxPlayer:
     def __init__(self, board, depth_limit=3):
