@@ -1,10 +1,11 @@
+import math
 import sys
 import pygame
 import time
 import os
 from copy import deepcopy
 
-from ..utils import manhattan_distance
+from ..utils import manhattan_distance, get_agent_moves
 
 # Ajustar el sys.path para permitir imports relativos
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,16 +20,26 @@ class MinMaxPlayer:
         self.depth_limit = depth_limit
         self.game = PygameMode(board)
 
+    def is_move_against_wall(self, board, move):
+        previous_pos = self.board.agent_pos
+        new_board = self.simulate_move(board, move)
+        new_pos = new_board.agent_pos
+        if previous_pos == new_pos:
+            return True
+        return False
+
     def get_best_move(self):
-        best_move, _ = self.minimax(self.board, 0, True)
+        best_move, _ = self.alphabeta(self.board, 0, True, -math.inf, math.inf)
         return best_move
 
-    def minimax(self, board, depth, is_maximizing):
+    def alphabeta(self, board, depth, is_maximizing, alpha, beta):
         if depth >= self.depth_limit:
+            print(f"Evaluando tablero en la profundidad {depth}")
             return None, self.evaluate(board)
 
         game_over, message = board.check_game_over()
         if game_over:
+            print(f"Juego terminado: {message}")
             if message == "¡Has encontrado el oro! ¡Ganaste!":
                 return None, float("inf")
             elif (
@@ -42,19 +53,33 @@ class MinMaxPlayer:
         if is_maximizing:
             best_value = float("-inf")
             best_move = None
-            for move in self.get_agent_moves():
+            for move in get_agent_moves():
+                if self.is_move_against_wall(board, move):
+                    print(f"Movimiento {move} contra la pared, ignorando.")
+                    continue
+                print(f"Maximizando: Probando movimiento {move} en la profundidad {depth}")
                 new_board = self.simulate_move(board, move)
-                _, value = self.minimax(new_board, depth + 1, False)
+                _, value = self.alphabeta(new_board, depth + 1, False, alpha, beta)
                 if value > best_value:
                     best_value = value
                     best_move = move
+                alpha = max(alpha, best_value)
+                if beta <= alpha:
+                    print(f"Podando ramas a profundidad {depth} con alpha {alpha} y beta {beta}")
+                    break
             return best_move, best_value
         else:
             best_value = float("inf")
-            new_board = self.simulate_dangerous_move(board)
-            _, value = self.minimax(new_board, depth + 1, True)
-            if value < best_value:
-                best_value = value
+            for move in get_agent_moves():
+                print(f"Minimizando: Probando movimiento {move} en la profundidad {depth}")
+                new_board = self.simulate_move(board, move)
+                _, value = self.alphabeta(new_board, depth + 1, True, alpha, beta)
+                if value < best_value:
+                    best_value = value
+                beta = min(beta, best_value)
+                if beta <= alpha:
+                    print(f"Podando ramas en la profundidad {depth} con alpha {alpha} y beta {beta}")
+                    break
             return None, best_value
 
     def evaluate(self, board):
@@ -72,9 +97,6 @@ class MinMaxPlayer:
                     danger_penalty += 10
 
         return -distance_to_gold - danger_penalty
-
-    def get_agent_moves(self):
-        return ["up", "down", "left", "right"]
 
     def simulate_move(self, board, move):
         new_board = deepcopy(board)
@@ -104,6 +126,7 @@ class MinMaxPlayer:
 
                 move = self.get_best_move()
                 if move:
+                    print(f"Agente moviendose a {move}")
                     self.board.move_agent(move)
                 self.game.draw_board()
 

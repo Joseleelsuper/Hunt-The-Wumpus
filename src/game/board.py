@@ -328,13 +328,11 @@ class Board:
             tuple: Mejor movimiento para el objeto.
         """
         best_move = None
-        best_value = float("inf") if obj_type == "W" else float("-inf")
+        best_value = float("inf") if obj_type == "W" or obj_type == "P" else float("-inf")
         for move in possible_moves:
-            value = manhattan_distance(
-                move[0], move[1], self.agent_pos[0], self.agent_pos[1]
-            )
-            if obj_type == "W":
-                if value < best_value:
+            value = self.heuristic(move, self.agent_pos)
+            if obj_type == "W" or obj_type == "P":
+                if value < best_value and "W" not in self.board[move[0]][move[1]] or "P" not in self.board[move[0]][move[1]]:
                     best_value = value
                     best_move = move
             else:

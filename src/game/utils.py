@@ -34,3 +34,12 @@ def get_move_direction(from_pos: tuple, to_pos: tuple):
         return "left"
     elif dy == 1:
         return "right"
+
+def get_agent_moves():
+    """
+    Devuelve las direcciones en las que el agente puede moverse.
+
+    Returns:
+        list: Lista de direcciones pos
+    """
+    return ["up", "down", "left", "right"]
