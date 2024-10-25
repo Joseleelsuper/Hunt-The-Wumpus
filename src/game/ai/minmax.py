@@ -55,7 +55,6 @@ class MinMaxPlayer:
             best_move = None
             for move in get_agent_moves():
                 if self.is_move_against_wall(board, move):
-                    print(f"Movimiento {move} contra la pared, ignorando.")
                     continue
                 print(f"Maximizando: Probando movimiento {move} en la profundidad {depth}")
                 new_board = self.simulate_move(board, move)
@@ -65,7 +64,6 @@ class MinMaxPlayer:
                     best_move = move
                 alpha = max(alpha, best_value)
                 if beta <= alpha:
-                    print(f"Podando ramas a profundidad {depth} con alpha {alpha} y beta {beta}")
                     break
             return best_move, best_value
         else:
@@ -78,7 +76,6 @@ class MinMaxPlayer:
                     best_value = value
                 beta = min(beta, best_value)
                 if beta <= alpha:
-                    print(f"Podando ramas en la profundidad {depth} con alpha {alpha} y beta {beta}")
                     break
             return None, best_value
 
