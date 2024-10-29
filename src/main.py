@@ -3,13 +3,15 @@ import sys
 import argparse
 
 # Ajustar el sys.path para permitir imports relativos
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, ".."))
+sys.path.append(project_root)
 
-from game.board import Board
-from ui.text_mode import TextMode
-from ui.pygame_mode import PygameMode
-from game.ai.astar import AStarPlayer
-from game.ai.minmax import MinMaxPlayer
+from src.game.board import Board
+from src.ui.text_mode import TextMode
+from src.ui.pygame_mode import PygameMode
+from src.game.ai.astar import AStarPlayer
+from src.game.ai.minmax import MinMaxPlayer
 
 
 def load_custom_board(file_path: str):

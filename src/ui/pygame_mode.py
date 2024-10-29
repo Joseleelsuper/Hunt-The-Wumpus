@@ -136,3 +136,33 @@ class PygameMode:
 
     def quit(self):
         pygame.quit()
+
+    def show_game_over_screen(self, message):
+        # Crear una superficie translúcida
+        overlay = pygame.Surface((self.width, self.height))
+        overlay.set_alpha(128)  # Valor de transparencia (0-255)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+        self.display_message(message)
+        self.display_message("Presiona 'R' para reiniciar o 'Q' para salir", offset=50)
+        pygame.display.flip()
+
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    waiting = False
+                    return False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        waiting = False
+                        return True  # Reiniciar el juego
+                    elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+                        waiting = False
+                        return False  # Salir del juego
+
+    def display_message(self, message, offset=0):
+        text_surface = self.font.render(message, True, (255, 255, 255))
+        rect = text_surface.get_rect(center=(self.width // 2, self.height // 2 + offset))
+        self.screen.blit(text_surface, rect)

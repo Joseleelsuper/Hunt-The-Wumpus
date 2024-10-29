@@ -200,7 +200,14 @@ class AStarPlayer:
                 if game_over:
                     print(message)
                     self.game.draw_board()
-                    game_running = False
+                    # Mostrar mensaje y opciones
+                    restart = self.game.show_game_over_screen(message)
+                    if restart:
+                        game_running = False
+                    else:
+                        game_running = False
+                        running = False
+                    break  # Salir del bucle interno
 
                 time.sleep(0.7)
 

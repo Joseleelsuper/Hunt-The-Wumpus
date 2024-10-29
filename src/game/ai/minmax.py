@@ -1,5 +1,4 @@
 import math
-import random
 import sys
 import pygame
 import time
@@ -16,13 +15,14 @@ sys.path.append(project_root)
 from src.ui.pygame_mode import PygameMode
 
 class MinMaxPlayer:
-    def __init__(self, board, depth_limit=5):
+    def __init__(self, board, depth_limit=6):
         self.board = board
         self.depth_limit = depth_limit
         self.game = PygameMode(board)
+        self.recent_moves = []  # Lista para almacenar los movimientos recientes
 
     def is_move_against_wall(self, board, move):
-        previous_pos = self.board.agent_pos
+        previous_pos = board.agent_pos
         new_board = self.simulate_move(board, move)
         new_pos = new_board.agent_pos
         if previous_pos == new_pos:
@@ -49,18 +49,12 @@ class MinMaxPlayer:
         if is_maximizing:
             best_value = float("-inf")
             best_move = None
-            safe_moves = []
+            moves = []
             for move in get_agent_moves():
                 if self.is_move_against_wall(board, move):
                     continue
                 new_board = self.simulate_move(board, move)
-                if self.is_safe_move(new_board):
-                    safe_moves.append((move, new_board))
-
-            if safe_moves:
-                moves = safe_moves
-            else:
-                moves = [(move, self.simulate_move(board, move)) for move in get_agent_moves()]
+                moves.append((move, new_board))
 
             for move, new_board in moves:
                 _, value = self.alphabeta(new_board, depth + 1, False, alpha, beta)
@@ -83,17 +77,24 @@ class MinMaxPlayer:
                     break
             return None, best_value
 
-    def is_safe_move(self, board):
+    def is_safe_move(self, board, move):
         """
-        Verifica si un movimiento es seguro (sin Wumpus ni hoyos).
+        Verifica si un movimiento es seguro.
+        El agente solo evitará las casillas con peligros reales ('W' o 'P').
         """
-        agent_pos = board.agent_pos
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nx, ny = agent_pos[0] + dx, agent_pos[1] + dy
-            if 0 <= nx < board.size and 0 <= ny < board.size:
-                if "W" in board.board[nx][ny] or "P" in board.board[nx][ny]:
-                    return False
-        return True
+        new_board = self.simulate_move(board, move)
+        agent_pos = new_board.agent_pos
+
+        # Si la nueva posición es el oro, permitir el movimiento
+        if agent_pos == board.gold_pos:
+            return True
+
+        # Evitar casillas con peligros reales
+        cell = new_board.board[agent_pos[0]][agent_pos[1]]
+        if "W" in cell or "P" in cell:
+            return False
+
+        return True  # Permitir movimientos a otras casillas, incluso si hay 'S' o 'B'
 
     def evaluate(self, board):
         """
@@ -104,40 +105,48 @@ class MinMaxPlayer:
         gold_pos = board.gold_pos
 
         # Distancia de Manhattan al oro
-        score -= abs(agent_pos[0] - gold_pos[0]) + abs(agent_pos[1] - gold_pos[1])
+        distance = abs(agent_pos[0] - gold_pos[0]) + abs(agent_pos[1] - gold_pos[1])
+        score -= distance
 
-        # Penalización por peligros
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nx, ny = agent_pos[0] + dx, agent_pos[1] + dy
-            if 0 <= nx < board.size and 0 <= ny < board.size:
-                if "W" in board.board[nx][ny]:
-                    score -= 100  # Penalización alta por Wumpus
-                if "P" in board.board[nx][ny]:
-                    score -= 100  # Penalización alta por hoyo
-                if "B" in board.board[nx][ny]:
-                    score -= 10   # Penalización baja por brisa
-                if "S" in board.board[nx][ny]:
-                    score -= 10   # Penalización baja por hedor
-                if "G" in board.board[nx][ny]:
-                    score += 1000  # Recompensa por oro
+        # Si el agente está en el oro, dar una puntuación alta
+        if agent_pos == gold_pos:
+            score += 1000
+
+        if "b" or "s" in board.board[agent_pos[0]][agent_pos[1]]:
+            score += 100  # Recompensa por detectar peligros
+
+        # Penalización por morir (entrar en un pozo o Wumpus)
+        cell = board.board[agent_pos[0]][agent_pos[1]]
+        if "W" in cell or "P" in cell:
+            score -= 1000  # Penalización alta por morir
 
         return score
 
     def simulate_move(self, board, move):
         new_board = deepcopy(board)
+        new_board.verbose = False  # Desactivar los prints durante la simulación
         new_board.move_agent(move)
         return new_board
 
-    def simulate_dangerous_move(self, board):
-        new_board = deepcopy(board)
-        new_board.move_dangerous_object()
-        return new_board
+    def check_for_loop(self):
+        """
+        Verifica si el agente está estancado en un bucle de dos movimientos repetidos tres veces.
+        """
+        if len(self.recent_moves) < 6:
+            return False
+        pattern = self.recent_moves[-6:]
+        first_move = pattern[0]
+        second_move = pattern[1]
+        for i in range(0, 6, 2):
+            if pattern[i] != first_move or pattern[i+1] != second_move:
+                return False
+        return True
 
     def run(self):
         running = True
         while running:
             self.board.reset()
-
+            self.recent_moves = []  # Reiniciar la lista de movimientos
             game_running = True
             while game_running:
                 for event in self.game.get_events():
@@ -152,18 +161,45 @@ class MinMaxPlayer:
                 move = self.get_best_move()
                 if move:
                     self.board.move_agent(move)
+                    # Agregar el movimiento a la lista de movimientos recientes
+                    self.recent_moves.append(move)
+                    if len(self.recent_moves) > 6:
+                        self.recent_moves.pop(0)
                 else:
                     for move in get_agent_moves():
                         if not self.is_move_against_wall(self.board, move):
                             self.board.move_agent(move)
+                            # Agregar el movimiento a la lista de movimientos recientes
+                            self.recent_moves.append(move)
+                            if len(self.recent_moves) > 6:
+                                self.recent_moves.pop(0)
                             break
                 self.game.draw_board()
                 time.sleep(0.5)
 
+                # Comprobar si el agente está en un bucle
+                if self.check_for_loop():
+                    print("El agente se ha estancado en un bucle.")
+                    # Mostrar mensaje y opciones
+                    restart = self.game.show_game_over_screen("El agente se ha estancado en un bucle.")
+                    if restart:
+                        game_running = False
+                    else:
+                        game_running = False
+                        running = False
+                    break
+
                 game_over, message = self.board.check_game_over()
                 if game_over:
                     print(message)
-                    game_running = False
+                    # Mostrar mensaje y opciones
+                    restart = self.game.show_game_over_screen(message)
+                    if restart:
+                        game_running = False
+                    else:
+                        game_running = False
+                        running = False
+                    break
                 else:
                     self.board.move_dangerous_object()
 
@@ -173,7 +209,14 @@ class MinMaxPlayer:
                 game_over, message = self.board.check_game_over()
                 if game_over:
                     print(message)
-                    game_running = False
+                    # Mostrar mensaje y opciones
+                    restart = self.game.show_game_over_screen(message)
+                    if restart:
+                        game_running = False
+                    else:
+                        game_running = False
+                        running = False
+                    break
 
             if running and not self.board.custom_board:
                 print("Generando un nuevo tablero aleatorio...")

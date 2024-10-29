@@ -8,17 +8,19 @@ class Board:
     Clase que representa el tablero del juego.
     """
 
-    def __init__(self, size: int = 6, custom_board: list = None):
+    def __init__(self, size: int = 6, custom_board: list = None, verbose: bool = True):
         """
         Inicializa el tablero con un tamaño y un tablero personalizado opcional.
 
         Args:
             size (int): Tamaño del tablero.
             custom_board (list): Tablero personalizado.
+            verbose (bool): Controla la impresión de percepciones.
         """
         self.size = size
         self.custom_board = custom_board
         self.arrowAvailable = True
+        self.verbose = verbose
         self.reset()
 
     def reset(self):
@@ -36,6 +38,10 @@ class Board:
             self.load_custom_board(self.custom_board)
         else:
             self.initialize_board()
+
+        # Seleccionar aleatoriamente uno de los pozos
+        if self.pits:
+            self.moving_pit = random.choice(self.pits)
 
     def load_custom_board(self, custom_board: list):
         """
@@ -242,7 +248,7 @@ class Board:
         if "s" in self.board[x][y]:
             perceptions.append("Percibes un hedor. El Wumpus debe estar cerca.")
 
-        if perceptions:
+        if perceptions and self.verbose:
             print("\n".join(perceptions))
 
     def shoot_arrow(self, direction: str):
@@ -311,31 +317,26 @@ class Board:
 
     def move_dangerous_object(self):
         """
-        Mueve el Wumpus o un pozo a una nueva posición en el tablero.
-
+        Mueve el Wumpus o el pozo seleccionado a una nueva posición en el tablero.
         Returns:
             bool: True si se ha movido un objeto, False en caso contrario.
         """
-        objects = [("W", self.wumpus_pos)] + [("P", pit) for pit in self.pits]
-        obj_type, obj_pos = random.choice(objects)
+
+        obj_type, obj_pos = ("P", self.moving_pit)
 
         possible_moves = self.get_possible_moves(obj_pos)
-        
-        # Priorizar moverse a la posición del agente
         agent_pos = self.agent_pos
+
         if agent_pos in possible_moves:
             new_pos = agent_pos
         else:
-            if not possible_moves:
-                # Si no hay movimientos posibles, mover a una casilla aleatoria
-                while True:
-                    new_pos = (random.randint(0, self.size - 1), random.randint(0, self.size - 1))
-                    if "W" not in self.board[new_pos[0]][new_pos[1]] and "P" not in self.board[new_pos[0]][new_pos[1]]:
-                        break
-            else:
-                new_pos = self.get_best_move_for_object(possible_moves)
+            new_pos = self.get_best_move_for_object(possible_moves)
 
         self.move_object(obj_type, obj_pos, new_pos)
+
+        if obj_type == "P":
+            self.moving_pit = new_pos  # Actualizar la posición del pozo
+
         return True
 
     def get_best_move_for_object(self, possible_moves: list):
