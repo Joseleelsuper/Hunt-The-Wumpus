@@ -21,6 +21,21 @@
 <br clear="both">
 <img src="https://raw.githubusercontent.com/Joseleelsuper/Joseleelsuper/output/snake.svg" alt="Snake animation" />
 
+## Índice
+
+1. [Importante](#importante)
+2. [Hunt the Wumpus - Adaptación](#hunt-the-wumpus---adaptación)
+3. [Proyecto y Propósito](#proyecto-y-propósito)
+4. [Instalación de Requisitos](#instalación-de-requisitos)
+5. [Ejecución del Juego](#ejecución-del-juego)
+6. [Estructura del Código](#estructura-del-código)
+7. [Explicación del Código Paso a Paso](#explicación-del-código-paso-a-paso)
+   1. [Inicialización del Tablero](#inicialización-del-tablero)
+   2. [Movimiento del Agente](#movimiento-del-agente)
+   3. [Disparo de Flechas](#disparo-de-flechas)
+   4. [Verificación del Estado del Juego](#verificación-del-estado-del-juego)
+   5. [Ejecución del Juego Completo](#ejecución-del-juego-completo)
+
 ## Proyecto y Propósito
 
 Este proyecto es una adaptación del clásico juego "Hunt the Wumpus". El objetivo era crear un algoritmo MinMax que jugase por el usuario, pero también tiene una versión de modo texto y gráfico que el usuario puede jugar, y además el modo A\* para encontrar la mejor ruta al Wumpus con un algoritmo distinto.
