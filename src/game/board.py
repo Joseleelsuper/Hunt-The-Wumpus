@@ -136,7 +136,7 @@ class Board:
                 x, y = random.randint(0, self.size - 1), random.randint(
                     0, self.size - 1
                 )
-                if self.is_valid_placement(x, y):
+                if self.is_valid_placement(x, y) and not self.is_wumpus_or_pit(x, y):
                     self.pits.append((x, y))
                     self.board[x][y].append("P")
                     break
@@ -157,6 +157,19 @@ class Board:
         ):
             return False
         return manhattan_distance(x, y, self.agent_pos[0], self.agent_pos[1]) > 2
+
+    def is_wumpus_or_pit(self, x: int, y: int):
+        """
+        Comprueba si una celda contiene el Wumpus o un pozo.
+
+        Args:
+            x (int): Coordenada x de la celda.
+            y (int): Coordenada y de la celda.
+
+        Returns:
+            bool: True si la celda contiene el Wumpus o un pozo, False en caso contrario.
+        """
+        return "W" in self.board[x][y] or "P" in self.board[x][y]
 
     def place_breezes_and_stenches(self):
         """
@@ -204,9 +217,7 @@ class Board:
         Returns:
             bool: True si el movimiento es válido, False en caso contrario.
         """
-        dx, dy = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}[
-            direction
-        ]
+        dx, dy = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}.get(direction)
 
         new_x, new_y = self.agent_pos[0] + dx, self.agent_pos[1] + dy
 
@@ -309,36 +320,41 @@ class Board:
         obj_type, obj_pos = random.choice(objects)
 
         possible_moves = self.get_possible_moves(obj_pos)
-        if not possible_moves:
-            return False
+        
+        # Priorizar moverse a la posición del agente
+        agent_pos = self.agent_pos
+        if agent_pos in possible_moves:
+            new_pos = agent_pos
+        else:
+            if not possible_moves:
+                # Si no hay movimientos posibles, mover a una casilla aleatoria
+                while True:
+                    new_pos = (random.randint(0, self.size - 1), random.randint(0, self.size - 1))
+                    if "W" not in self.board[new_pos[0]][new_pos[1]] and "P" not in self.board[new_pos[0]][new_pos[1]]:
+                        break
+            else:
+                new_pos = self.get_best_move_for_object(possible_moves)
 
-        new_pos = self.get_best_move_for_object(obj_type, possible_moves)
         self.move_object(obj_type, obj_pos, new_pos)
         return True
 
-    def get_best_move_for_object(self, obj_type: str, possible_moves: list):
+    def get_best_move_for_object(self, possible_moves: list):
         """
         Devuelve el mejor movimiento para un objeto en una posición dada.
 
         Args:
-            obj_type (str): Tipo de objeto a mover (Wumpus o pozo).
             possible_moves (list): Lista de movimientos posibles.
 
         Returns:
             tuple: Mejor movimiento para el objeto.
         """
         best_move = None
-        best_value = float("inf") if obj_type == "W" or obj_type == "P" else float("-inf")
+        best_value = float("inf")
         for move in possible_moves:
             value = self.heuristic(move, self.agent_pos)
-            if obj_type == "W" or obj_type == "P":
-                if value < best_value and "W" not in self.board[move[0]][move[1]] or "P" not in self.board[move[0]][move[1]]:
-                    best_value = value
-                    best_move = move
-            else:
-                if value > best_value:
-                    best_value = value
-                    best_move = move
+            if value < best_value:
+                best_value = value
+                best_move = move
         return best_move
 
     def move_object(self, obj_type: str, old_pos: tuple, new_pos: tuple):
@@ -382,6 +398,10 @@ class Board:
             if 0 <= nx < self.size and 0 <= ny < self.size:
                 if perception in self.board[nx][ny]:
                     self.board[nx][ny].remove(perception)
+                    if perception == "b" and "P" in self.board[nx][ny]:
+                        self.board[nx][ny].append("b")
+                    if perception == "s" and "W" in self.board[nx][ny]:
+                        self.board[nx][ny].append("s")
 
     def add_perceptions(self, x: int, y: int, obj_type: str):
         """
@@ -416,7 +436,8 @@ class Board:
             if (
                 0 <= nx < self.size
                 and 0 <= ny < self.size
-                and "A" not in self.board[nx][ny]
+                and "W" not in self.board[nx][ny]
+                and "P" not in self.board[nx][ny]
                 and "G" not in self.board[nx][ny]
             ):
                 moves.append((nx, ny))
