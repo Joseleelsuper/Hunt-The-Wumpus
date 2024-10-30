@@ -32,7 +32,7 @@ class PygameMode:
             "A": pygame.image.load(os.path.join(base_path, "agent.png")),
             "W": pygame.image.load(os.path.join(base_path, "wumpus.png")),
             "G": pygame.image.load(os.path.join(base_path, "gold.png")),
-            "P": pygame.image.load(os.path.join(base_path, "pit.png")),
+            "O": pygame.image.load(os.path.join(base_path, "pit.png")),
             "b": pygame.image.load(os.path.join(base_path, "breeze.png")),
             "s": pygame.image.load(os.path.join(base_path, "stench.png")),
         }
@@ -48,7 +48,7 @@ class PygameMode:
             for j in range(self.board.size):
                 if (i, j) == gold_pos:
                     utility[i][j] = 0  # El oro tiene el menor coste.
-                elif "W" in self.board.board[i][j] or "P" in self.board.board[i][j]:
+                elif "W" in self.board.board[i][j] or "O" in self.board.board[i][j]:
                     utility[i][j] = 1000  # Wumpus y pozos tienen el mayor coste
                 else:
                     distance = abs(i - gold_pos[0]) + abs(j - gold_pos[1])

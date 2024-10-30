@@ -34,29 +34,17 @@ class MinMaxPlayer:
         return best_move
 
     def alphabeta(self, board, depth, is_maximizing, alpha, beta):
-        if depth >= self.depth_limit:
-            return None, self.evaluate(board)
-
         game_over, message = board.check_game_over()
-        if game_over:
-            if message == "¡Has encontrado el oro! ¡Ganaste!":
-                return None, float("inf")
-            elif message == "¡El Wumpus te ha atrapado!" or message == "¡Has caído en un hoyo!":
-                return None, float("-inf")
-            else:
-                return None, 0
+        if game_over or depth == self.depth_limit:
+            return None, self.evaluate(board)
 
         if is_maximizing:
             best_value = float("-inf")
             best_move = None
-            moves = []
             for move in get_agent_moves():
                 if self.is_move_against_wall(board, move):
                     continue
                 new_board = self.simulate_move(board, move)
-                moves.append((move, new_board))
-
-            for move, new_board in moves:
                 _, value = self.alphabeta(new_board, depth + 1, False, alpha, beta)
                 if value > best_value:
                     best_value = value
@@ -68,6 +56,8 @@ class MinMaxPlayer:
         else:
             best_value = float("inf")
             for move in get_agent_moves():
+                if self.is_move_against_wall(board, move):
+                    continue
                 new_board = self.simulate_move(board, move)
                 _, value = self.alphabeta(new_board, depth + 1, True, alpha, beta)
                 if value < best_value:
@@ -80,21 +70,17 @@ class MinMaxPlayer:
     def is_safe_move(self, board, move):
         """
         Verifica si un movimiento es seguro.
-        El agente solo evitará las casillas con peligros reales ('W' o 'P').
+        Solo evita casillas con peligros reales ('W' o 'O').
         """
         new_board = self.simulate_move(board, move)
         agent_pos = new_board.agent_pos
 
-        # Si la nueva posición es el oro, permitir el movimiento
-        if agent_pos == board.gold_pos:
-            return True
-
         # Evitar casillas con peligros reales
         cell = new_board.board[agent_pos[0]][agent_pos[1]]
-        if "W" in cell or "P" in cell:
+        if "W" in cell or "O" in cell:
             return False
 
-        return True  # Permitir movimientos a otras casillas, incluso si hay 'S' o 'B'
+        return True  # Permitir movimientos a otras casillas
 
     def evaluate(self, board):
         """
@@ -104,20 +90,17 @@ class MinMaxPlayer:
         agent_pos = board.agent_pos
         gold_pos = board.gold_pos
 
-        # Distancia de Manhattan al oro
+        # Distancia de Manhattan al oro (priorizar acercarse al oro)
         distance = abs(agent_pos[0] - gold_pos[0]) + abs(agent_pos[1] - gold_pos[1])
-        score -= distance
+        score -= distance * 100  # Multiplicar por 10 para dar más peso
 
         # Si el agente está en el oro, dar una puntuación alta
         if agent_pos == gold_pos:
             score += 1000
 
-        if "b" or "s" in board.board[agent_pos[0]][agent_pos[1]]:
-            score += 100  # Recompensa por detectar peligros
-
         # Penalización por morir (entrar en un pozo o Wumpus)
         cell = board.board[agent_pos[0]][agent_pos[1]]
-        if "W" in cell or "P" in cell:
+        if "W" in cell or "O" in cell:
             score -= 1000  # Penalización alta por morir
 
         return score
@@ -159,7 +142,7 @@ class MinMaxPlayer:
                             running = False
 
                 move = self.get_best_move()
-                if move:
+                if move and not self.is_move_against_wall(self.board, move):
                     self.board.move_agent(move)
                     # Agregar el movimiento a la lista de movimientos recientes
                     self.recent_moves.append(move)
@@ -174,6 +157,7 @@ class MinMaxPlayer:
                             if len(self.recent_moves) > 6:
                                 self.recent_moves.pop(0)
                             break
+                print(f"El agente se mueve hacia {move}")
                 self.game.draw_board()
                 time.sleep(0.5)
 

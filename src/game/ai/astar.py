@@ -139,7 +139,7 @@ class AStarPlayer:
         base_cost = 1
 
         # Aumentar significativamente el coste para celdas peligrosas
-        if "W" in cell or "P" in cell:
+        if "W" in cell or "O" in cell:
             return float("inf")
         elif "b" and "s" in cell:
             base_cost *= 150

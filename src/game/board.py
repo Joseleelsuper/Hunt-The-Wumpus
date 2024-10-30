@@ -72,7 +72,7 @@ class Board:
                         self.board[i][j].append("W")
                     elif char == "O":
                         self.pits.append((i, j))
-                        self.board[i][j].append("P")
+                        self.board[i][j].append("O")
                     elif char == "G":
                         self.gold_pos = (i, j)
                         self.board[i][j].append("G")
@@ -144,7 +144,7 @@ class Board:
                 )
                 if self.is_valid_placement(x, y) and not self.is_wumpus_or_pit(x, y):
                     self.pits.append((x, y))
-                    self.board[x][y].append("P")
+                    self.board[x][y].append("O")
                     break
 
     def is_valid_placement(self, x: int, y: int):
@@ -175,7 +175,7 @@ class Board:
         Returns:
             bool: True si la celda contiene el Wumpus o un pozo, False en caso contrario.
         """
-        return "W" in self.board[x][y] or "P" in self.board[x][y]
+        return "W" in self.board[x][y] or "O" in self.board[x][y]
 
     def place_breezes_and_stenches(self):
         """
@@ -183,7 +183,7 @@ class Board:
         """
         for x in range(self.size):
             for y in range(self.size):
-                if "P" in self.board[x][y]:
+                if "O" in self.board[x][y]:
                     self.place_perception(x, y, "b")
                 elif "W" in self.board[x][y]:
                     self.place_perception(x, y, "s")
@@ -202,7 +202,7 @@ class Board:
             if 0 <= nx < self.size and 0 <= ny < self.size:
                 if (
                     perception not in self.board[nx][ny]
-                    and "P" not in self.board[nx][ny]
+                    and "O" not in self.board[nx][ny]
                     and "W" not in self.board[nx][ny]
                 ):
                     self.board[nx][ny].append(perception)
@@ -296,7 +296,7 @@ class Board:
         x, y = self.agent_pos
         if "W" in self.board[x][y]:
             return True, "¡El Wumpus te ha atrapado!"
-        if "P" in self.board[x][y]:
+        if "O" in self.board[x][y]:
             return True, "¡Has caído en un hoyo!"
         if "G" in self.board[x][y]:
             return True, "¡Has encontrado el oro! ¡Ganaste!"
@@ -322,7 +322,7 @@ class Board:
             bool: True si se ha movido un objeto, False en caso contrario.
         """
 
-        obj_type, obj_pos = ("P", self.moving_pit)
+        obj_type, obj_pos = ("O", self.moving_pit)
 
         possible_moves = self.get_possible_moves(obj_pos)
         agent_pos = self.agent_pos
@@ -334,7 +334,7 @@ class Board:
 
         self.move_object(obj_type, obj_pos, new_pos)
 
-        if obj_type == "P":
+        if obj_type == "O":
             self.moving_pit = new_pos  # Actualizar la posición del pozo
 
         return True
@@ -378,7 +378,7 @@ class Board:
 
         if obj_type == "W":
             self.wumpus_pos = new_pos
-        elif obj_type == "P":
+        elif obj_type == "O":
             self.pits.remove(old_pos)
             self.pits.append(new_pos)
 
@@ -399,7 +399,7 @@ class Board:
             if 0 <= nx < self.size and 0 <= ny < self.size:
                 if perception in self.board[nx][ny]:
                     self.board[nx][ny].remove(perception)
-                    if perception == "b" and "P" in self.board[nx][ny]:
+                    if perception == "b" and "O" in self.board[nx][ny]:
                         self.board[nx][ny].append("b")
                     if perception == "s" and "W" in self.board[nx][ny]:
                         self.board[nx][ny].append("s")
@@ -438,7 +438,7 @@ class Board:
                 0 <= nx < self.size
                 and 0 <= ny < self.size
                 and "W" not in self.board[nx][ny]
-                and "P" not in self.board[nx][ny]
+                and "O" not in self.board[nx][ny]
                 and "G" not in self.board[nx][ny]
             ):
                 moves.append((nx, ny))
