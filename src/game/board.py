@@ -264,20 +264,23 @@ class Board:
         if not self.arrowAvailable:
             return False, "No tienes flechas disponibles."
 
-        self.arrowAvailable = False
         dx, dy = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}[
             direction
         ]
 
-        x, y = self.agent_pos
-        while 0 <= x < self.size and 0 <= y < self.size:
-            if "W" in self.board[x][y]:
-                self.board[x][y].remove("W")
-                self.board[x][y].append("X")  # X represents dead Wumpus
-                self.wumpus_pos = None
-                self.remove_stench()
-                return True, "¡Has matado al Wumpus!"
-            x, y = x + dx, y + dy
+        # Si la dirección no es válida, no se dispara la flecha
+        if not (0 <= self.agent_pos[0] + dx < self.size and 0 <= self.agent_pos[1] + dy < self.size):
+            return False, "Dirección inválida."
+
+        self.arrowAvailable = False
+        
+        x, y = self.agent_pos[0] + dx, self.agent_pos[1] + dy
+        if "W" in self.board[x][y]:
+            self.board[x][y].remove("W")
+            self.board[x][y].append("X")  # X represents dead Wumpus
+            self.wumpus_pos = None
+            self.remove_stench()
+            return True, "¡Has matado al Wumpus!"
         return False, "Has fallado."
 
     def remove_stench(self):
