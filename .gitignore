@@ -5,3 +5,4 @@
 /src/game/__pycache__/
 /src/game/ai/__pycache__/
 /.ipynb_checkpoints
+/src/__pycache__
