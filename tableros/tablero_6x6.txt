@@ -2,5 +2,5 @@
 sW[sb]..b
 .s..bO
 .....b
-.b...b
-[Ab]Ob.bO
+.b....
+[Ab]Ob...
