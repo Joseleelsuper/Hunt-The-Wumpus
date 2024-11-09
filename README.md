@@ -1,5 +1,5 @@
 > [!NOTE]
-> Este README ha sido creado para mostrarse correctamente en github. Para la explicación del código paso a paso, abrir el README compatible con [Jupyter Notebook](/README.ipynb)
+> Este README ha sido creado para mostrarse correctamente en GitHub. Para la explicación del código paso a paso, abrir el README compatible con [Jupyter Notebook](/README.ipynb)
 
 # Hunt the Wumpus - Adaptación
 
@@ -26,11 +26,6 @@
 5. [Ejecución del Juego](#ejecución-del-juego)
 6. [Estructura del Código](#estructura-del-código)
 7. [Explicación del Código Paso a Paso](#explicación-del-código-paso-a-paso)
-   1. [Inicialización del Tablero](#inicialización-del-tablero)
-   2. [Movimiento del Agente](#movimiento-del-agente)
-   3. [Disparo de Flechas](#disparo-de-flechas)
-   4. [Verificación del Estado del Juego](#verificación-del-estado-del-juego)
-   5. [Ejecución del Juego Completo](#ejecución-del-juego-completo)
 
 ## Proyecto y Propósito
 
